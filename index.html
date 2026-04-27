@@ -818,8 +818,8 @@
         <input class="form-input" type="text" id="inp-nome" placeholder="Come ti chiami?" />
       </div>
       <div class="form-group">
-        <label class="form-label">Email o WhatsApp</label>
-        <input class="form-input" type="text" id="inp-contatto" placeholder="Come ti contatto?" />
+        <label class="form-label">La tua email</label>
+        <input class="form-input" type="email" id="inp-email" placeholder="La tua email" />
       </div>
       <div class="form-group">
         <label class="form-label">Cosa ti interessa?</label>
@@ -835,9 +835,9 @@
         <label class="form-label">Messaggio (facoltativo)</label>
         <textarea class="form-input" id="inp-msg" placeholder="Scrivi liberamente, non c'è una risposta giusta o sbagliata..."></textarea>
       </div>
-      <button class="submit-btn" onclick="handleSubmit()">Invia il messaggio →</button>
+      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">Invia il messaggio →</button>
       <div class="success-msg" id="success-msg">
-        Messaggio ricevuto! Ti rispondo al più presto. Grazie per la fiducia.
+        ✅ Messaggio ricevuto! Ti rispondo al più presto. Grazie per la fiducia.
       </div>
     </div>
   </div>
@@ -863,32 +863,50 @@ function toggleFaq(el) {
   }
 }
 
-const form = document.getElementById('contact-form');
-if (form) {
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    btn.textContent = 'Invio in corso...';
-    btn.disabled = true;
-    const data = new FormData(form);
-    try {
-      const res = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: data
-      });
-      const json = await res.json();
-      if (json.success) {
-        form.style.display = 'none';
-        document.getElementById('success-msg').style.display = 'block';
-      } else {
-        btn.textContent = 'Errore, riprova';
-        btn.disabled = false;
-      }
-    } catch(err) {
-      btn.textContent = 'Errore, riprova';
+async function handleSubmit() {
+  const nome = document.getElementById('inp-nome').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const tipo = document.getElementById('inp-tipo').value;
+  const msg = document.getElementById('inp-msg').value.trim();
+  const btn = document.getElementById('submit-btn');
+
+  if (!nome || !email) {
+    alert('Per favore inserisci il nome e la tua email.');
+    return;
+  }
+
+  btn.textContent = 'Invio in corso...';
+  btn.disabled = true;
+
+  const payload = {
+    access_key: '2af1e12a-465a-4441-95f1-8e806aaa86b4',
+    subject: 'Nuovo contatto — Progetto struttura Evolution',
+    name: nome,
+    email: email,
+    interesse: tipo,
+    message: msg || '(nessun messaggio)'
+  };
+
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    if (json.success) {
+      document.querySelector('.contact-form').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } else {
+      alert('Qualcosa è andato storto, riprova.');
+      btn.textContent = 'Invia il messaggio →';
       btn.disabled = false;
     }
-  });
+  } catch(err) {
+    alert('Errore di connessione, riprova.');
+    btn.textContent = 'Invia il messaggio →';
+    btn.disabled = false;
+  }
 }
 
 // Scroll animations
