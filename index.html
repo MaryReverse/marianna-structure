@@ -863,16 +863,32 @@ function toggleFaq(el) {
   }
 }
 
-function handleSubmit() {
-  const nome = document.getElementById('inp-nome').value.trim();
-  const contatto = document.getElementById('inp-contatto').value.trim();
-  if (!nome || !contatto) {
-    alert('Per favore inserisci almeno il nome e un contatto.');
-    return;
-  }
-  document.getElementById('success-msg').style.display = 'block';
-  document.querySelector('.submit-btn').disabled = true;
-  document.querySelector('.submit-btn').textContent = 'Inviato ✓';
+const form = document.getElementById('contact-form');
+if (form) {
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = 'Invio in corso...';
+    btn.disabled = true;
+    const data = new FormData(form);
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: data
+      });
+      const json = await res.json();
+      if (json.success) {
+        form.style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+      } else {
+        btn.textContent = 'Errore, riprova';
+        btn.disabled = false;
+      }
+    } catch(err) {
+      btn.textContent = 'Errore, riprova';
+      btn.disabled = false;
+    }
+  });
 }
 
 // Scroll animations
